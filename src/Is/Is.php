@@ -2,9 +2,8 @@
 
 namespace Is;
 
-/**
- *
- */
+use SplFileInfo;
+
 class Is
 {
     const JPEG = 'jpeg';
@@ -19,29 +18,31 @@ class Is
 
     private function __construct()
     {
-        /**
+        /*
          *
          */
     }
 
     private function __clone()
     {
-        /**
+        /*
          *
          */
     }
 
     /**
-     * @param $path
+     * @param  string $path
+     *
      * @return bool
      */
-    public static function is_path($path)
+    public static function is_file(string $path)
     {
-        return is_file($path);
+        return @is_file($path) === true;
     }
 
     /**
-     * @param string $url
+     * @param  string $url
+     *
      * @return bool
      */
     public static function is_url(string $url)
@@ -50,30 +51,97 @@ class Is
     }
 
     /**
-     * @param string $image
-     * @param null $format
+     * @param $splFile
+     *
+     * @return bool
+     *
+     * @link http://php.net/manual/en/class.splfileinfo.php
+     */
+    public static function is_splFileInfo($splFile)
+    {
+        return $splFile instanceof SplFileInfo;
+    }
+
+    /**
+     * @param  mixed             $image
+     * @param  array|string|null $format
+     *
      * @return bool
      */
-    public static function is_image(string $image, $format = null)
+    public static function is_image($image, $format = null)
     {
-        if (!static::is_url($image) && !static::is_path($image)) {
-            return false;
-        };
+        // url file content
+        if (is_string($image)) {
+            if (!static::is_url($image) && !static::is_file($image)) {
+                /**
+                 * 既不是 url 也不是 file.
+                 */
+                $image = @getimagesizefromstring($image);
+            } else {
+                $image = @getimagesize($image);
+            }
+        } elseif (self::is_splFileInfo($image)) {
+            /*
+             * SplFileInfo -> file
+             */
+            $image = @getimagesize($image->getRealPath());
+        } elseif (is_resource($image)) {
+            $image = @getimagesizefromstring(stream_get_contents($image));
+        } else {
+            $image = false;
+        }
 
-        $image = getimagesize($image);
         $bool = $image !== false;
 
         if (is_null($format)) {
-
             return $bool;
         }
 
         if ($bool) {
-            $type = $image['mime'];
+            if (is_array($format)) {
+                return in_array(static::getImageFormat($image), $format);
+            }
 
-            return $type === "image/$format";
+            return static::getImageFormat($image) === $format;
         }
 
         return false;
+    }
+
+    /**
+     * @param array $image
+     *
+     * @return string
+     */
+    private static function getImageFormat(array $image)
+    {
+        $array = explode('/', $image['mime']);
+
+        return $array[1];
+    }
+
+    /**
+     * @return string
+     */
+    private static function getTemp()
+    {
+        if (PHP_OS === 'WINNT') {
+            return getenv('Temp').DIRECTORY_SEPARATOR.session_create_id();
+        }
+
+        return '/tmp/'.session_create_id();
+    }
+
+    /**
+     * @param string $string
+     *
+     * @return string
+     */
+    public static function str2file(string $string)
+    {
+        $file = static::getTemp();
+        file_put_contents($file, $string);
+
+        return $file;
     }
 }

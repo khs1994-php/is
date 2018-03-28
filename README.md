@@ -23,6 +23,9 @@ $ composer require khs1994/is @dev
 
 require __DIR__.'/vendor/autoload.php';
 
+use Is\Is;
+
+var_dump(Is::is_url('https://www.khs1994.com'));
 ```
 
 ## PHP CaaS
