@@ -65,10 +65,11 @@ class Is
     /**
      * @param  mixed             $image
      * @param  array|string|null $format
+     * @param bool               $returnBase64Encode
      *
      * @return bool
      */
-    public static function is_image($image, $format = null)
+    public static function is_image($image, $format = null, $returnBase64Encode = false)
     {
         // url file content
         if (is_string($image)) {
@@ -76,36 +77,61 @@ class Is
                 /**
                  * 既不是 url 也不是 file.
                  */
+                $content = $image;
                 $image = @getimagesizefromstring($image);
             } else {
+                $content = file_get_contents($image);
                 $image = @getimagesize($image);
             }
         } elseif (self::is_splFileInfo($image)) {
             /*
              * SplFileInfo -> file
              */
-            $image = @getimagesize($image->getRealPath());
+            $file = $image->getRealPath();
+            $image = @getimagesize($file);
+            $content = file_get_contents($file);
         } elseif (is_resource($image)) {
-            $image = @getimagesizefromstring(stream_get_contents($image));
+            $content = stream_get_contents($image);
+            $image = @getimagesizefromstring($content);
         } else {
             $image = false;
+            $content = null;
         }
+
+        $content = base64_encode($content);
 
         $bool = $image !== false;
 
-        if (is_null($format)) {
-            return $bool;
+        if (!$bool) {
+            return false;
         }
 
-        if ($bool) {
-            if (is_array($format)) {
-                return in_array(static::getImageFormat($image), $format);
+        if (is_null($format)) {
+            // not check format
+            if ($returnBase64Encode) {
+                return $content;
             }
 
-            return static::getImageFormat($image) === $format;
+            return true;
         }
 
-        return false;
+        // check format
+
+        if (is_array($format)) {
+            $bool = in_array(static::getImageFormat($image), $format);
+        } else {
+            $bool = static::getImageFormat($image) === $format;
+        }
+
+        if (!$bool) {
+            return false;
+        }
+
+        if ($returnBase64Encode) {
+            return $content;
+        }
+
+        return true;
     }
 
     /**

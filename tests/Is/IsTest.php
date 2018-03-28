@@ -28,7 +28,7 @@ class IsTest extends isTestCase
         /*
          * url false
          */
-        $this->assertFalse(Is::is_image('https://www.baidu.com'));
+        $this->assertFalse(Is::is_image('https://www.baidu.com', null, true));
 
         /*
          * file
@@ -38,8 +38,7 @@ class IsTest extends isTestCase
         /*
          * file false
          */
-
-        $this->assertFalse(Is::is_image($file_false));
+        $this->assertFalse(Is::is_image($file_false, null, true));
 
         /*
          * content
@@ -49,7 +48,7 @@ class IsTest extends isTestCase
         /*
          * content false
          */
-        $this->assertFalse(Is::is_image(1));
+        $this->assertFalse(Is::is_image(1, null, true));
 
         /*
          * resource
@@ -59,7 +58,7 @@ class IsTest extends isTestCase
         /*
          * resource false
          */
-        $this->assertFalse(Is::is_image(fopen($file_false, 'r')));
+        $this->assertFalse(Is::is_image(fopen($file_false, 'r'), null, true));
 
         /*
          * SplFileInfo
@@ -69,7 +68,7 @@ class IsTest extends isTestCase
         /*
          * SplFileInfo false
          */
-        $this->assertFalse(Is::is_image(new \SplFileInfo($file_false)));
+        $this->assertFalse(Is::is_image(new \SplFileInfo($file_false), null, true));
 
         /*
          * format string
@@ -79,7 +78,7 @@ class IsTest extends isTestCase
         /*
          * format string false
          */
-        $this->assertFalse(Is::is_image($url, Is::BMP));
+        $this->assertFalse(Is::is_image($url, Is::BMP), true);
 
         /*
          * format array
